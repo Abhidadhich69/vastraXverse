@@ -17,7 +17,7 @@ export const registerUser = createAsyncThunk(
       {
         withCredentials: true,
       }
-    );
+    ); 
 
     return response.data;
   }
