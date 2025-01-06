@@ -152,7 +152,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               </Button>
             ) : (
               <Button
-                className="w-full"
+                className="w-full bg-[#ecb06b] hover:bg-[#ad6623] text-white "
                 onClick={() =>
                   handleAddToCart(
                     productDetails?._id,

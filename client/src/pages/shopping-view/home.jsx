@@ -34,9 +34,6 @@ import { getFeatureImages } from "@/store/common-slice";
 const categoriesWithIcon = [
   { id: "men", label: "Men", icon: ShirtIcon },
   { id: "women", label: "Women", icon: CloudLightning },
-  { id: "kids", label: "Kids", icon: BabyIcon },
-  { id: "accessories", label: "Accessories", icon: WatchIcon },
-  { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
 ];
 
 const brandsWithIcon = [
@@ -164,19 +161,22 @@ function ShoppingHome() {
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">
-            Shop by category
+            Shop by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categoriesWithIcon.map((categoryItem) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {categoriesWithIcon.map((categoryItem, index) => (
               <Card
+                key={index}
                 onClick={() =>
                   handleNavigateToListingPage(categoryItem, "category")
                 }
-                className="cursor-pointer hover:shadow-lg transition-shadow"
+                className="cursor-pointer hover:shadow-xl transition-shadow rounded-lg"
               >
                 <CardContent className="flex flex-col items-center justify-center p-6">
                   <categoryItem.icon className="w-12 h-12 mb-4 text-primary" />
-                  <span className="font-bold">{categoryItem.label}</span>
+                  <span className="font-bold text-lg">
+                    {categoryItem.label}
+                  </span>
                 </CardContent>
               </Card>
             ))}
@@ -184,7 +184,7 @@ function ShoppingHome() {
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50">
+      {/* <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -201,7 +201,7 @@ function ShoppingHome() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="py-12">
         <div className="container mx-auto px-4">

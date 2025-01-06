@@ -47,38 +47,34 @@ function AdminProducts() {
   function onSubmit(event) {
     event.preventDefault();
 
-    currentEditedId !== null
-      ? dispatch(
-          editProduct({
-            id: currentEditedId,
-            formData,
-          })
-        ).then((data) => {
-          console.log(data, "edit");
+    const finalFormData = {
+      ...formData,
+      image: uploadedImageUrl || formData.image,
+    };
 
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            setFormData(initialFormData);
-            setOpenCreateProductsDialog(false);
-            setCurrentEditedId(null);
-          }
+    if (currentEditedId !== null) {
+      dispatch(
+        editProduct({
+          id: currentEditedId,
+          formData: finalFormData,
         })
-      : dispatch(
-          addNewProduct({
-            ...formData,
-            image: uploadedImageUrl,
-          })
-        ).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllProducts());
-            setOpenCreateProductsDialog(false);
-            setImageFile(null);
-            setFormData(initialFormData);
-            toast({
-              title: "Product add successfully",
-            });
-          }
-        });
+      ).then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchAllProducts());
+          resetForm();
+        }
+      });
+    } else {
+      dispatch(addNewProduct(finalFormData)).then((data) => {
+        if (data?.payload?.success) {
+          dispatch(fetchAllProducts());
+          resetForm();
+          toast({
+            title: "Product added successfully",
+          });
+        }
+      });
+    }
   }
 
   function handleDelete(getCurrentProductId) {
@@ -90,17 +86,26 @@ function AdminProducts() {
   }
 
   function isFormValid() {
-    return Object.keys(formData)
-      .filter((currentKey) => currentKey !== "averageReview")
-      .map((key) => formData[key] !== "")
-      .every((item) => item);
+    return (
+      Object.keys(formData)
+        .filter((key) => key !== "averageReview")
+        .every((key) => formData[key] !== "" && formData[key] !== null) &&
+      (uploadedImageUrl || currentEditedId !== null)
+    );
+  }
+
+  function resetForm() {
+    setFormData(initialFormData);
+    setUploadedImageUrl("");
+    setImageFile(null);
+    setImageLoadingState(false);
+    setOpenCreateProductsDialog(false);
+    setCurrentEditedId(null);
   }
 
   useEffect(() => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
-
-  console.log(formData, "productList");
 
   return (
     <Fragment>
@@ -110,24 +115,26 @@ function AdminProducts() {
         </Button>
       </div>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
-              <AdminProductTile
-                setFormData={setFormData}
-                setOpenCreateProductsDialog={setOpenCreateProductsDialog}
-                setCurrentEditedId={setCurrentEditedId}
-                product={productItem}
-                handleDelete={handleDelete}
-              />
-            ))
-          : null}
+        {productList && productList.length > 0 ? (
+          productList.map((productItem) => (
+            <AdminProductTile
+              key={productItem.id}
+              setFormData={setFormData}
+              setOpenCreateProductsDialog={setOpenCreateProductsDialog}
+              setCurrentEditedId={setCurrentEditedId}
+              product={productItem}
+              handleDelete={handleDelete}
+            />
+          ))
+        ) : (
+          <p>No products found.</p>
+        )}
       </div>
       <Sheet
         open={openCreateProductsDialog}
-        onOpenChange={() => {
-          setOpenCreateProductsDialog(false);
-          setCurrentEditedId(null);
-          setFormData(initialFormData);
+        onOpenChange={(isOpen) => {
+          if (!isOpen) resetForm();
+          setOpenCreateProductsDialog(isOpen);
         }}
       >
         <SheetContent side="right" className="overflow-auto">
@@ -152,7 +159,7 @@ function AdminProducts() {
               setFormData={setFormData}
               buttonText={currentEditedId !== null ? "Edit" : "Add"}
               formControls={addProductFormElements}
-              isBtnDisabled={!isFormValid()}
+              isBtnDisabled={false}
             />
           </div>
         </SheetContent>
