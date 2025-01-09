@@ -84,10 +84,10 @@ function ShoppingCheckout() {
         dispatch(createNewOrder(orderData)).then((data) => {
           if (data?.payload?.success) {
             const razorpayOrder = data.payload.order; // Assuming this is the order object returned from the backend
-            
+      
             // Prepare Razorpay options for checkout
             const options = {
-              key: "YOUR_RAZORPAY_KEY_ID", // Your Razorpay key ID
+              key: process.env.RAZORPAY_KEY_ID, // Use environment variable for Razorpay key
               amount: razorpayOrder.amount, // The amount to be charged in paise (₹100 = 10000)
               currency: "INR", // Currency code
               order_id: razorpayOrder.orderId, // Razorpay order ID

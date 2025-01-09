@@ -3,12 +3,17 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const User = require("./models/User");
+const path = require("path");
+const fs = require("fs");
+const util = require("util");
+const unlinkAsync = util.promisify(fs.unlink);
+
 const connectDB = require("./utils/connectDB");
+const User = require("./models/User");
 const FeatureImage = require("./models/FeatureImage");
+const Order = require("./models/Order"); // Assuming you have an Order model
 
 // Import routes
-const path = require("path");
 const authRouter = require("./routes/auth/auth-routes");
 const adminProductsRouter = require("./routes/admin/products-routes");
 const adminOrderRouter = require("./routes/admin/order-routes");
@@ -19,31 +24,32 @@ const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
-const fs = require("fs");
-const util = require("util");
-const unlinkAsync = util.promisify(fs.unlink);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "Cache-Control",
-      "Expires",
-      "Pragma",
-    ],
-    credentials: true,
-  })
-);
-
 app.use(cookieParser());
 app.use(express.json());
+
+// CORS setup
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production" ? "https://your-frontend-domain.com" : "http://localhost:5173",
+  methods: ["GET", "POST", "DELETE", "PUT"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cache-Control",
+    "Expires",
+    "Pragma",
+  ],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// Preflight request handling for CORS
+app.options("*", cors(corsOptions));  // Preflight request handling for all routes
 
 // API routes
 app.use("/api/auth", authRouter);
@@ -57,15 +63,7 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
-// Connect to the database
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is now running on port ${PORT}`);
-  });
-});
-
 // Feature Image Routes
-
 // Fetch all feature images
 app.get("/api/feature-images", async (req, res) => {
   try {
@@ -81,9 +79,7 @@ app.get("/api/feature-images", async (req, res) => {
 app.post("/api/feature-images", async (req, res) => {
   const { image } = req.body;
   if (!image) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Image URL is required" });
+    return res.status(400).json({ success: false, message: "Image URL is required" });
   }
 
   try {
@@ -104,20 +100,14 @@ app.delete("/api/feature-images/:id", async (req, res) => {
     const deletedImage = await FeatureImage.findByIdAndDelete(id);
 
     if (!deletedImage) {
-      return res.status(404).json({
-        success: false,
-        message: "Image not found",
-      });
+      return res.status(404).json({ success: false, message: "Image not found" });
     }
 
     // If there is an associated file, remove it from the server
     const imagePath = path.join(__dirname, "uploads", deletedImage.filename);
     try {
       await unlinkAsync(imagePath);
-      return res.json({
-        success: true,
-        message: "Image deleted successfully",
-      });
+      res.json({ success: true, message: "Image deleted successfully" });
     } catch (fileError) {
       console.error("Error deleting image file:", fileError);
       return res.status(500).json({
@@ -127,9 +117,70 @@ app.delete("/api/feature-images/:id", async (req, res) => {
     }
   } catch (error) {
     console.error("Error deleting image record:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Error deleting image record",
     });
   }
+});
+
+// Order creation route
+app.post("/api/shop/order/create", async (req, res) => {
+  const { items, totalAmount, userId, shippingAddress } = req.body;
+
+  // Validate input fields
+  if (!items || items.length === 0) {
+    return res.status(400).json({ success: false, message: "Order items are required" });
+  }
+
+  if (!totalAmount || totalAmount <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid total amount" });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "User ID is required" });
+  }
+
+  if (!shippingAddress) {
+    return res.status(400).json({ success: false, message: "Shipping address is required" });
+  }
+
+  // Create the new order
+  try {
+    const newOrder = new Order({
+      items,  // Array of product ObjectIds
+      totalAmount,
+      user: userId,  // Assuming you have userId from the body or session
+      shippingAddress,
+    });
+
+    // Save the order to the database
+    await newOrder.save();
+
+    // Respond with success
+    res.json({ success: true, order: newOrder });
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ success: false, message: "Error creating order" });
+  }
+});
+
+// Global error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, message: "Something went wrong!" });
+});
+
+// Logging incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(req.method, req.url);
+  console.log("Request body:", req.body); // Log the request body for debugging
+  next();
+});
+
+// Connect to the database and start server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is now running on port ${PORT}`);
+  });
 });

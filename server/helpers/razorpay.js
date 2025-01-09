@@ -9,16 +9,16 @@ const razorpay = new Razorpay({
 
 const createOrder = async () => {
     const options = {
-        amount: 50000, // Amount in the smallest currency unit (e.g., 50000 paise = ₹500)
+        amount: 50000, // Amount in the smallest currency unit (50000 paise = ₹500)
         currency: "INR",
         receipt: "order_rcptid_11",
-        payment_capture: 1,
+        payment_capture: 1, // Automatically capture payment
     };
 
     try {
         console.log("Creating order with options:", options);
         const order = await razorpay.orders.create(options);
-        console.log("Order Created:", order);
+        console.log("Order Created Successfully:", order);
         return order;
     } catch (error) {
         if (error.response) {
@@ -35,7 +35,8 @@ const createOrder = async () => {
 // Execute and catch unhandled errors
 (async () => {
     try {
-        await createOrder();
+        const order = await createOrder();
+        console.log("Order ID:", order.id); // Print the Order ID after creation
     } catch (error) {
         console.error("Unhandled Error:", error);
     }
