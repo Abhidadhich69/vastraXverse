@@ -6,8 +6,9 @@ const cors = require("cors");
 const path = require("path");
 const fs = require("fs");
 const util = require("util");
+const bodyParser = require("body-parser");  // Import body-parser
 const unlinkAsync = util.promisify(fs.unlink);
-
+const checkoutRoute = require("./routes/shop/checkout-routes");  // Import the checkout routes
 const connectDB = require("./utils/connectDB");
 const User = require("./models/User");
 const FeatureImage = require("./models/FeatureImage");
@@ -30,7 +31,8 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cookieParser());
-app.use(express.json());
+app.use(bodyParser.json()); // Middleware for parsing JSON requests
+app.use(bodyParser.urlencoded({ extended: true })); // Middleware for parsing URL-encoded requests
 
 // CORS setup
 const corsOptions = {
@@ -62,7 +64,7 @@ app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
-
+app.use("/api/checkout", checkoutRoute);
 // Feature Image Routes
 // Fetch all feature images
 app.get("/api/feature-images", async (req, res) => {
@@ -125,43 +127,22 @@ app.delete("/api/feature-images/:id", async (req, res) => {
 });
 
 // Order creation route
-app.post("/api/shop/order/create", async (req, res) => {
-  const { items, totalAmount, userId, shippingAddress } = req.body;
-
-  // Validate input fields
-  if (!items || items.length === 0) {
-    return res.status(400).json({ success: false, message: "Order items are required" });
-  }
-
-  if (!totalAmount || totalAmount <= 0) {
-    return res.status(400).json({ success: false, message: "Invalid total amount" });
-  }
-
-  if (!userId) {
-    return res.status(400).json({ success: false, message: "User ID is required" });
-  }
-
-  if (!shippingAddress) {
-    return res.status(400).json({ success: false, message: "Shipping address is required" });
-  }
-
-  // Create the new order
+app.post("/api/orders/create-order", async (req, res) => {
   try {
-    const newOrder = new Order({
-      items,  // Array of product ObjectIds
+    const { userId, cartItems, totalAmount, addressInfo } = req.body;
+
+    // Simulate order creation logic
+    const razorpayOrderId = "order_" + Date.now(); // Generate a sample order ID
+
+    // Return a JSON response
+    res.status(200).json({
+      success: true,
+      razorpayOrderId,
       totalAmount,
-      user: userId,  // Assuming you have userId from the body or session
-      shippingAddress,
     });
-
-    // Save the order to the database
-    await newOrder.save();
-
-    // Respond with success
-    res.json({ success: true, order: newOrder });
   } catch (error) {
     console.error("Error creating order:", error);
-    res.status(500).json({ success: false, message: "Error creating order" });
+    res.status(500).json({ success: false, message: "Order creation failed" });
   }
 });
 

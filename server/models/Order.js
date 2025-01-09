@@ -1,33 +1,29 @@
 const mongoose = require("mongoose");
 
-const OrderSchema = new mongoose.Schema({
-  userId: String,
-  cartId: String,
+const orderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  cartId: { type: mongoose.Schema.Types.ObjectId, ref: "Cart", required: false },
   cartItems: [
     {
-      productId: String,
-      title: String,
-      image: String,
-      price: String,
-      quantity: Number,
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      title: { type: String, required: true },
+      quantity: { type: Number, required: true },
+      price: { type: Number, required: true },
     },
   ],
   addressInfo: {
-    addressId: String,
-    address: String,
-    city: String,
-    pincode: String,
-    phone: String,
-    notes: String,
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    country: { type: String, required: true },
   },
-  orderStatus: String,
-  paymentMethod: String,
-  paymentStatus: String,
-  totalAmount: Number,
-  orderDate: Date,
-  orderUpdateDate: Date,
-  paymentId: String,
-  payerId: String,
+  totalAmount: { type: Number, required: true },
+  razorpayOrderId: { type: String, required: true },
+  paymentId: { type: String },
+  payerId: { type: String },
+  orderStatus: { type: String, default: "Pending" },
+  paymentStatus: { type: String, default: "Pending" },
+  orderDate: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model("Order", OrderSchema);
+module.exports = mongoose.model("Order", orderSchema);
