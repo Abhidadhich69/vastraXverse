@@ -19,9 +19,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./store/auth-slice";
 import { Skeleton } from "@/components/ui/skeleton";
-import PaypalReturnPage from "./pages/shopping-view/paypal-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
+import RazorpayReturnPage from "./pages/shopping-view/razorpay-return";
+import AboutUs from "./pages/shopping-view/about-us"; // Import About Us page
+import PrivacyPolicy from "./pages/shopping-view/privacy-policy"; // Import Privacy Policy page
+import TermsConditions from "./pages/shopping-view/terms-conditions"; // Import Terms and Conditions page
+import ContactUs from "./pages/shopping-view/contact-us"; // Import Contact Us page
+import Footer from "./components/common/footer";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -40,6 +45,7 @@ function App() {
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <Routes>
+        {/* Main Route */}
         <Route
           path="/"
           element={
@@ -49,6 +55,8 @@ function App() {
             ></CheckAuth>
           }
         />
+
+        {/* Authentication Routes */}
         <Route
           path="/auth"
           element={
@@ -60,6 +68,8 @@ function App() {
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
         </Route>
+
+        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -73,6 +83,8 @@ function App() {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
         </Route>
+
+        {/* Shopping Routes */}
         <Route
           path="/shop"
           element={
@@ -85,13 +97,26 @@ function App() {
           <Route path="listing" element={<ShoppingListing />} />
           <Route path="checkout" element={<ShoppingCheckout />} />
           <Route path="account" element={<ShoppingAccount />} />
-          <Route path="paypal-return" element={<PaypalReturnPage />} />
+          <Route path="razorpay-return" element={<RazorpayReturnPage />} />
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="search" element={<SearchProducts />} />
+          {/* Add the new routes for About Us, Privacy Policy, Terms & Conditions, Contact Us */}
+          <Route path="about-us" element={<AboutUs />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="terms-conditions" element={<TermsConditions />} />
+          <Route path="contact-us" element={<ContactUs />} />{" "}
+          {/* Contact Us page */}
         </Route>
+
+        {/* Unauthorized Page */}
         <Route path="/unauth-page" element={<UnauthPage />} />
+
+        {/* Not Found Route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

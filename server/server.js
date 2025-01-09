@@ -8,7 +8,7 @@ const connectDB = require("./utils/connectDB");
 const FeatureImage = require("./models/FeatureImage");
 
 // Import routes
-
+const path = require("path");
 const authRouter = require("./routes/auth/auth-routes");
 const adminProductsRouter = require("./routes/admin/products-routes");
 const adminOrderRouter = require("./routes/admin/order-routes");
@@ -19,6 +19,9 @@ const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
+const fs = require("fs");
+const util = require("util");
+const unlinkAsync = util.promisify(fs.unlink);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -58,28 +61,6 @@ app.use("/api/common/feature", commonFeatureRouter);
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server is now running on port ${PORT}`);
-
-    async function Main() {
-      console.log("started");
-      const adminEmails = [
-        "sharmaabhi72005@gmail.com",
-        "lucistar0705@gmail.com",
-        "vastraxverse@gmail.com",
-      ];
-
-      await User.updateMany(
-        {
-          email: { $in: adminEmails }, // Match any email in the array
-        },
-        {
-          $set: { role: "admin" }, // Update the role to 'admin'
-        }
-      );
-
-      console.log("ended");
-    }
-
-    Main();
   });
 });
 
@@ -100,7 +81,9 @@ app.get("/api/feature-images", async (req, res) => {
 app.post("/api/feature-images", async (req, res) => {
   const { image } = req.body;
   if (!image) {
-    return res.status(400).json({ success: false, message: "Image URL is required" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Image URL is required" });
   }
 
   try {
@@ -119,12 +102,34 @@ app.delete("/api/feature-images/:id", async (req, res) => {
 
   try {
     const deletedImage = await FeatureImage.findByIdAndDelete(id);
+
     if (!deletedImage) {
-      return res.status(404).json({ success: false, message: "Image not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Image not found",
+      });
     }
-    res.json({ success: true, message: "Image deleted successfully" });
+
+    // If there is an associated file, remove it from the server
+    const imagePath = path.join(__dirname, "uploads", deletedImage.filename);
+    try {
+      await unlinkAsync(imagePath);
+      return res.json({
+        success: true,
+        message: "Image deleted successfully",
+      });
+    } catch (fileError) {
+      console.error("Error deleting image file:", fileError);
+      return res.status(500).json({
+        success: false,
+        message: "Image metadata deleted, but file removal failed",
+      });
+    }
   } catch (error) {
-    console.error("Error deleting image:", error);
-    res.status(500).json({ success: false, message: "Error deleting image" });
+    console.error("Error deleting image record:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting image record",
+    });
   }
 });

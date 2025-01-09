@@ -10,9 +10,8 @@ export const getFeatureImages = createAsyncThunk(
   "/order/getFeatureImages",
   async () => {
     const response = await axios.get(
-      `http://localhost:5000/api/common/feature/get`
+      `http://localhost:5000/api/feature-images`
     );
-
     return response.data;
   }
 );
@@ -21,10 +20,9 @@ export const addFeatureImage = createAsyncThunk(
   "/order/addFeatureImage",
   async (image) => {
     const response = await axios.post(
-      `http://localhost:5000/api/common/feature/add`,
+      `http://localhost:5000/api/feature-images`,
       { image }
     );
-
     return response.data;
   }
 );
@@ -33,9 +31,8 @@ export const deleteFeatureImage = createAsyncThunk(
   "/order/deleteFeatureImage",
   async (imageId) => {
     const response = await axios.delete(
-      `http://localhost:5000/api/common/feature/delete/${imageId}`
+      `http://localhost:5000/api/feature-images/${imageId}`
     );
-
     return { success: response.data.success, id: imageId };
   }
 );
@@ -46,37 +43,34 @@ const commonSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Handle fetching feature images
+      // Fetch feature images
       .addCase(getFeatureImages.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getFeatureImages.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.featureImageList = action.payload.data;
+        state.featureImageList = action.payload.images;
       })
       .addCase(getFeatureImages.rejected, (state) => {
         state.isLoading = false;
         state.featureImageList = [];
       })
-      // Handle adding a feature image
+      // Add a feature image
       .addCase(addFeatureImage.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(addFeatureImage.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.featureImageList.push(action.payload.data);
+        state.featureImageList.push(action.payload.image);
       })
       .addCase(addFeatureImage.rejected, (state) => {
         state.isLoading = false;
       })
-      // Handle deleting a feature image
-      .addCase(deleteFeatureImage.pending, (state) => {
-        state.isLoading = true;
-      })
+      // Delete a feature image
       .addCase(deleteFeatureImage.fulfilled, (state, action) => {
         state.isLoading = false;
         state.featureImageList = state.featureImageList.filter(
-          (image) => image.id !== action.payload.id
+          (image) => image._id !== action.payload.id
         );
       })
       .addCase(deleteFeatureImage.rejected, (state) => {

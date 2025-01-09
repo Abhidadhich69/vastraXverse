@@ -61,6 +61,13 @@ function MenuItems() {
           {menuItem.label}
         </Label>
       ))}
+      {/* Adding Contact Us link */}
+      <Label
+        onClick={() => navigate("/shop/contact-us")}
+        className="text-sm font-medium cursor-pointer"
+      >
+        Contact Us
+      </Label>
     </nav>
   );
 }

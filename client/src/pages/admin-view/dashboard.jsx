@@ -11,18 +11,18 @@ function AdminDashboard() {
   const dispatch = useDispatch();
   const { featureImageList } = useSelector((state) => state.commonFeature);
 
+  // Handle upload feature image
   function handleUploadFeatureImage() {
-    if (uploadedImageUrl) {
-      dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
-        if (data?.payload?.success) {
-          dispatch(getFeatureImages());
-          setImageFile(null);
-          setUploadedImageUrl("");
-        }
-      });
-    }
+    dispatch(addFeatureImage(uploadedImageUrl)).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(getFeatureImages());
+        setImageFile(null);
+        setUploadedImageUrl("");
+      }
+    });
   }
 
+  // Handle delete feature image
   function handleDeleteFeatureImage(imageId) {
     dispatch(deleteFeatureImage(imageId)).then((data) => {
       if (data?.payload?.success) {
@@ -49,26 +49,24 @@ function AdminDashboard() {
       <Button onClick={handleUploadFeatureImage} className="mt-5 w-full">
         Upload
       </Button>
+
       <div className="flex flex-col gap-4 mt-5">
-        {featureImageList && featureImageList.length > 0 ? (
-          featureImageList.map((featureImgItem) => (
-            <div className="relative" key={featureImgItem.id}>
-              <img
-                src={featureImgItem.image}
-                alt="Feature"
-                className="w-full h-[300px] object-cover rounded-t-lg"
-              />
-              <Button
-                onClick={() => handleDeleteFeatureImage(featureImgItem.id)}
-                className="absolute top-2 right-2 bg-red-600 text-white"
-              >
-                Delete
-              </Button>
-            </div>
-          ))
-        ) : (
-          <p>No images found</p>
-        )}
+        {featureImageList && featureImageList.length > 0
+          ? featureImageList.map((featureImgItem) => (
+              <div key={featureImgItem._id} className="relative">
+                <img
+                  src={featureImgItem.image}
+                  className="w-full h-[300px] object-cover rounded-t-lg"
+                />
+                <button
+                  onClick={() => handleDeleteFeatureImage(featureImgItem._id)}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full"
+                >
+                  Delete
+                </button>
+              </div>
+            ))
+          : null}
       </div>
     </div>
   );

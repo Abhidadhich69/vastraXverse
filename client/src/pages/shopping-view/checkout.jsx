@@ -32,64 +32,101 @@ function ShoppingCheckout() {
         )
       : 0;
 
-  function handleInitiatePaypalPayment() {
-    if (cartItems.length === 0) {
-      toast({
-        title: "Your cart is empty. Please add items to proceed",
-        variant: "destructive",
-      });
-
-      return;
-    }
-    if (currentSelectedAddress === null) {
-      toast({
-        title: "Please select one address to proceed.",
-        variant: "destructive",
-      });
-
-      return;
-    }
-
-    const orderData = {
-      userId: user?.id,
-      cartId: cartItems?._id,
-      cartItems: cartItems.items.map((singleCartItem) => ({
-        productId: singleCartItem?.productId,
-        title: singleCartItem?.title,
-        image: singleCartItem?.image,
-        price:
-          singleCartItem?.salePrice > 0
-            ? singleCartItem?.salePrice
-            : singleCartItem?.price,
-        quantity: singleCartItem?.quantity,
-      })),
-      addressInfo: {
-        addressId: currentSelectedAddress?._id,
-        address: currentSelectedAddress?.address,
-        city: currentSelectedAddress?.city,
-        pincode: currentSelectedAddress?.pincode,
-        phone: currentSelectedAddress?.phone,
-        notes: currentSelectedAddress?.notes,
-      },
-      orderStatus: "pending",
-      paymentMethod: "paypal",
-      paymentStatus: "pending",
-      totalAmount: totalCartAmount,
-      orderDate: new Date(),
-      orderUpdateDate: new Date(),
-      paymentId: "",
-      payerId: "",
-    };
-
-    dispatch(createNewOrder(orderData)).then((data) => {
-      console.log(data, "sangam");
-      if (data?.payload?.success) {
-        setIsPaymemntStart(true);
-      } else {
-        setIsPaymemntStart(false);
+      function handleInitiateRazorpayPayment() {
+        if (cartItems.length === 0) {
+          toast({
+            title: "Your cart is empty. Please add items to proceed",
+            variant: "destructive",
+          });
+          return;
+        }
+      
+        if (currentSelectedAddress === null) {
+          toast({
+            title: "Please select one address to proceed.",
+            variant: "destructive",
+          });
+          return;
+        }
+      
+        const orderData = {
+          userId: user?.id,
+          cartId: cartItems?._id,
+          cartItems: cartItems.items.map((singleCartItem) => ({
+            productId: singleCartItem?.productId,
+            title: singleCartItem?.title,
+            image: singleCartItem?.image,
+            price:
+              singleCartItem?.salePrice > 0
+                ? singleCartItem?.salePrice
+                : singleCartItem?.price,
+            quantity: singleCartItem?.quantity,
+          })),
+          addressInfo: {
+            addressId: currentSelectedAddress?._id,
+            address: currentSelectedAddress?.address,
+            city: currentSelectedAddress?.city,
+            pincode: currentSelectedAddress?.pincode,
+            phone: currentSelectedAddress?.phone,
+            notes: currentSelectedAddress?.notes,
+          },
+          orderStatus: "pending",
+          paymentMethod: "razorpay", // Change to Razorpay
+          paymentStatus: "pending",
+          totalAmount: totalCartAmount,
+          orderDate: new Date(),
+          orderUpdateDate: new Date(),
+          paymentId: "",
+          orderId: "", // Initialize empty orderId
+        };
+      
+        // Create the order using Razorpay API on the backend
+        dispatch(createNewOrder(orderData)).then((data) => {
+          if (data?.payload?.success) {
+            const razorpayOrder = data.payload.order; // Assuming this is the order object returned from the backend
+            
+            // Prepare Razorpay options for checkout
+            const options = {
+              key: "YOUR_RAZORPAY_KEY_ID", // Your Razorpay key ID
+              amount: razorpayOrder.amount, // The amount to be charged in paise (₹100 = 10000)
+              currency: "INR", // Currency code
+              order_id: razorpayOrder.orderId, // Razorpay order ID
+              name: "Your Company Name",
+              description: "Purchase description",
+              image: "URL_TO_YOUR_LOGO",
+              handler: function (response) {
+                // Once payment is successful, update the order status
+                dispatch(
+                  updatePaymentStatus({
+                    paymentId: response.razorpay_payment_id,
+                    orderId: razorpayOrder.orderId,
+                    signature: response.razorpay_signature,
+                  })
+                ).then(() => {
+                  window.location.href = "/shop/payment-success"; // Redirect to success page
+                });
+              },
+              prefill: {
+                name: user?.name,
+                email: user?.email,
+                contact: currentSelectedAddress?.phone,
+              },
+              notes: {
+                address: currentSelectedAddress?.address,
+              },
+              theme: {
+                color: "#F37254", // Your theme color
+              },
+            };
+      
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
+          } else {
+            setIsPaymemntStart(false);
+          }
+        });
       }
-    });
-  }
+      
 
   if (approvalURL) {
     window.location.href = approvalURL;
@@ -114,14 +151,14 @@ function ShoppingCheckout() {
           <div className="mt-8 space-y-4">
             <div className="flex justify-between">
               <span className="font-bold">Total</span>
-              <span className="font-bold">${totalCartAmount}</span>
+              <span className="font-bold">{totalCartAmount} Rs</span>
             </div>
           </div>
           <div className="mt-4 w-full">
-            <Button onClick={handleInitiatePaypalPayment} className="w-full">
+            <Button onClick={handleInitiateRazorpayPayment} className="w-full">
               {isPaymentStart
-                ? "Processing Paypal Payment..."
-                : "Checkout with Paypal"}
+                ? "Processing Razorpay Payment..."
+                : "Checkout with Razorpay"}
             </Button>
           </div>
         </div>
