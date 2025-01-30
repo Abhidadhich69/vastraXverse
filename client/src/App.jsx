@@ -9,7 +9,6 @@ import AdminOrders from "./pages/admin-view/orders";
 import AdminFeatures from "./pages/admin-view/features";
 import ShoppingLayout from "./components/shopping-view/layout";
 import NotFound from "./pages/not-found";
-import ShoppingHome from "./pages/shopping-view/home";
 import ShoppingListing from "./pages/shopping-view/listing";
 import ShoppingCheckout from "./pages/shopping-view/checkout";
 import ShoppingAccount from "./pages/shopping-view/account";
@@ -27,6 +26,7 @@ import PrivacyPolicy from "./pages/shopping-view/privacy-policy"; // Import Priv
 import TermsConditions from "./pages/shopping-view/terms-conditions"; // Import Terms and Conditions page
 import ContactUs from "./pages/shopping-view/contact-us"; // Import Contact Us page
 import Footer from "./components/common/footer";
+import ShoppingHome from "./pages/shopping-view/home"; // Import ShoppingHome
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(

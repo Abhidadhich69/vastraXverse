@@ -25,7 +25,7 @@ const shopOrderRouter = require("./routes/shop/order-routes");
 const shopSearchRouter = require("./routes/shop/search-routes");
 const shopReviewRouter = require("./routes/shop/review-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
-
+const paymentRoutes = require('./routes/payment-routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -65,6 +65,7 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 app.use("/api/checkout", checkoutRoute);
+app.use('/api/payment', paymentRoutes);
 // Feature Image Routes
 // Fetch all feature images
 app.get("/api/feature-images", async (req, res) => {

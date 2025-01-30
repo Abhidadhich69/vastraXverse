@@ -24,17 +24,19 @@ const createOrder = async (req, res) => {
       orderStatus = "Pending",
     } = req.body;
 
-    // Validate request data
+    // Validate total amount
     if (!totalAmount || totalAmount <= 0) {
       return res.status(400).json({ success: false, message: "Invalid total amount" });
     }
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ success: false, message: "Cart is empty" });
+
+    // Ensure the amount is not below the minimum threshold (Razorpay's minimum is typically ₹1)
+    if (totalAmount < 1) {
+      return res.status(400).json({ success: false, message: "Order amount must be at least ₹1" });
     }
 
     // Prepare Razorpay order options
     const orderOptions = {
-      amount: totalAmount * 100, // Convert to paise
+      amount: totalAmount * 100, // Convert to paise (Razorpay expects amount in paise)
       currency: "INR",
       receipt: `receipt_${cartId}`,
       notes: { cartId },
@@ -76,6 +78,7 @@ const createOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Error while creating order" });
   }
 };
+
 
 // Capture a payment
 const capturePayment = async (req, res) => {
@@ -122,9 +125,14 @@ const capturePayment = async (req, res) => {
 // Get all orders by a user
 const getAllOrdersByUser = async (req, res) => {
   try {
+    console.log("req.params:", req.params);
     const { userId } = req.params;
 
     const orders = await Order.find({ userId });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ success: false, message: "No orders found for this user" });
+    }
 
     res.status(200).json({ success: true, orders });
   } catch (error) {
