@@ -47,7 +47,7 @@ const corsOptions = {
   ],
   credentials: true,
 };
-
+app.use(cors({ origin: "https://vastra-xverse.vercel.app/", credentials: true }));
 app.use(cors(corsOptions));
 
 // Preflight request handling for CORS
