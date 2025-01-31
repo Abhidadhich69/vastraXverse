@@ -36,7 +36,9 @@ app.use(bodyParser.urlencoded({ extended: true })); // Middleware for parsing UR
 
 // CORS setup
 const corsOptions = {
-  origin: process.env.NODE_ENV === "production" ? "https://your-frontend-domain.com" : "http://localhost:5173",
+  origin: process.env.NODE_ENV === "production" 
+    ? "https://vastra-xverse.vercel.app"  // Frontend hosted on Vercel
+    : "http://localhost:5173",            // For local development (Vite)
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: [
     "Content-Type",
@@ -45,13 +47,11 @@ const corsOptions = {
     "Expires",
     "Pragma",
   ],
-  credentials: true,
+  credentials: true,  // This ensures cookies are included
 };
-app.use(cors({ origin: "https://vastra-xverse.vercel.app/", credentials: true }));
-app.use(cors(corsOptions));
 
-// Preflight request handling for CORS
-app.options("*", cors(corsOptions));  // Preflight request handling for all routes
+app.use(cors(corsOptions));  // Apply CORS middleware with the configured options
+app.options("*", cors(corsOptions));  // Handle pre-flight OPTIONS requests
 
 // API routes
 app.use("/api/auth", authRouter);
@@ -66,6 +66,7 @@ app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 app.use("/api/checkout", checkoutRoute);
 app.use('/api/payment', paymentRoutes);
+
 // Feature Image Routes
 // Fetch all feature images
 app.get("/api/feature-images", async (req, res) => {
