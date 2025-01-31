@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // Middleware for parsing UR
 // CORS setup
 const corsOptions = {
   origin: process.env.NODE_ENV === "production" 
-    ? "https://vastra-xverse.vercel.app"  // Frontend hosted on Vercel
+    ? "https://vastra-xverse.vercel.app/auth/login"  // Frontend hosted on Vercel
     : "http://localhost:5173",            // For local development (Vite)
   methods: ["GET", "POST", "DELETE", "PUT"],
   allowedHeaders: [
